@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id               Int                @id @default(autoincrement())
+  name             String
+  email            String             @unique
+  password_hash    String
+  phone            String
+  Reservations     Reservations[]
+  RestaurantAdmins RestaurantAdmins[]
+  Reviews          Reviews[]
+
+  @@map("users")
+}
+
+model Restaurants {
+  id               Int                @id @default(autoincrement())
+  name             String
+  description      String
+  address          String
+  latitude         Float
+  longitude        Float
+  cuisine_type     String
+  price_range      PriceRange
+  opening_hours    Json
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  MenuItems        MenuItems[]
+  RestaurantPhotos RestaurantPhotos[]
+  Reservations     Reservations[]
+  RestaurantAdmins RestaurantAdmins[]
+  Reviews          Reviews[]
+  Tables           Tables[]
+
+  @@map("restaurants")
+}
+
+model Tables {
+  id            Int            @id @default(autoincrement())
+  capacity      Int
+  table_number  String
+  restaurantsId Int
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  Reservations  Reservations[]
+  restaurant_id Restaurants    @relation(fields: [restaurantsId], references: [id])
+
+  @@map("tables")
+}
+
+model Reservations {
+  id               Int         @id @default(autoincrement())
+  usersId          Int
+  restaurantsId    Int
+  tablesId         Int
+  reservation_date DateTime
+  reservation_time DateTime
+  party_size       Int
+  status           Status
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  restaurant_id    Restaurants @relation(fields: [restaurantsId], references: [id])
+  table_id         Tables      @relation(fields: [tablesId], references: [id])
+  user_id          Users       @relation(fields: [usersId], references: [id])
+
+  @@map("reservations")
+}
+
+model Reviews {
+  id            Int         @id @default(autoincrement())
+  usersId       Int
+  restaurantsId Int
+  rating        Int
+  comment       String
+  create_at     DateTime    @default(now())
+  update_at     DateTime    @updatedAt
+  restaurant_id Restaurants @relation(fields: [restaurantsId], references: [id])
+  user_id       Users       @relation(fields: [usersId], references: [id])
+
+  @@map("reviews")
+}
+
+model RestaurantAdmins {
+  id            Int         @id @default(autoincrement())
+  usersId       Int
+  restaurantsId Int
+  role          Role        @default(manager)
+  restaurant_id Restaurants @relation(fields: [restaurantsId], references: [id])
+  user_id       Users       @relation(fields: [usersId], references: [id])
+
+  @@map("restaurantAdmins")
+}
+
+model MenuItems {
+  id            Int         @id @default(autoincrement())
+  restaurantsId Int
+  name          String
+  description   String
+  price         Decimal     @db.Decimal(10, 2)
+  category      String
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+  restaurant_id Restaurants @relation(fields: [restaurantsId], references: [id])
+}
+
+model RestaurantPhotos {
+  id            Int         @id @default(autoincrement())
+  restaurantsId Int
+  photo_url     String
+  is_primary    Boolean
+  restaurant_id Restaurants @relation(fields: [restaurantsId], references: [id])
+}
+
+enum PriceRange {
+  one
+  two
+  three
+  four
+}
+
+enum Status {
+  pending
+  confirmed
+  cancelled
+}
+
+enum Role {
+  owner
+  manager
+}
