@@ -9,11 +9,12 @@ export async function userRegister(req, res) {
     const isEmailTaken = await emailExists(email);
 
     if (isEmailTaken) {
-      res.status(400).json({ message: "email already exists" });
+      return res.status(400).json({ message: "email already exists" });
     } 
 
-    const password_hash = await bcrypt.hash(password, 10);
-    const user = await createUser(name, email, password_hash, phone);
+    const cleanNumber = phone.replace(/\D/g, '');
+    const password_hash = await bcrypt.hash(password, 10);  
+    const user = await createUser(name, email, password_hash, cleanNumber);
 
     const { password_hash: _, ...safeInfoUser } = user;
     return res.status(201).json(safeInfoUser);
