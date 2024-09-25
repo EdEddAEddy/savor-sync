@@ -10,7 +10,6 @@ export async function emailExists(email) {
 
     return !!user;
   } catch (error) {
-    console.error("Error checking email unique:", error);
     throw error;
   }
 }
@@ -26,9 +25,26 @@ export async function createUser(name, email, password_hash, phone) {
       },
     });
 
-    return user
+    return user;
   } catch (error) {
-    console.error("Error creating :", error);
+    throw error;
+  }
+}
+
+export async function findUserByEmail(email) {
+  try {
+    const user = await prisma.users.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    return user;
+  } catch (error) {
     throw error;
   }
 }
